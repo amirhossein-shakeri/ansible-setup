@@ -1,0 +1,24 @@
+---
+- name: Install NGINX
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: Copy custom NGINX config
+  copy:
+    src: default.conf
+    dest: /etc/nginx/sites-available/default
+    mode: '0644'
+    owner: root
+    group: root
+  notify:
+    - Reload nginx
+
+- name: Ensure NGINX is started and enabled
+  systemd:
+    name: nginx
+    enabled: yes
+    state: started
+
+- import_tasks: basic_auth.yml

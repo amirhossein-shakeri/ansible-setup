@@ -1,0 +1,37 @@
+---
+- name: Install nvm for root
+  shell: |
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+  args:
+    creates: /root/.nvm/nvm.sh
+
+- name: Load nvm and install Node.js 22 and pnpm
+  shell: |
+    export NVM_DIR="/root/.nvm"
+    source "$NVM_DIR/nvm.sh"
+    nvm install 22
+    nvm alias default 22
+    npm install -g pnpm pm2
+  environment:
+    NVM_DIR: "/root/.nvm"
+  args:
+    executable: /bin/bash
+
+- name: Configure pm2 to run on boot for root
+  shell: |
+    export NVM_DIR="/root/.nvm"
+    source "$NVM_DIR/nvm.sh"
+    pm2 startup systemd -u root --hp /root
+  args:
+    executable: /bin/bash
+  register: pm2_startup_output
+  changed_when: "'[PM2] Init System found: systemd' in pm2_startup_output.stdout"
+
+- name: Save pm2 process list (so it auto-resurrects on reboot)
+  shell: |
+    export NVM_DIR="/root/.nvm"
+    source "$NVM_DIR/nvm.sh"
+    pm2 save
+  args:
+    executable: /bin/bash
+  when: pm2_startup_output is defined

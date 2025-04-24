@@ -1,0 +1,15 @@
+- name: Restore Docker volume from backup
+  hosts: servers
+  become: true
+  vars:
+    volume_name: my_data_volume
+    backup_file: my_data_volume_2025-04-24_13-30_IRDT.tar.zst
+
+  tasks:
+    - name: Create volume if not exists
+      shell: docker volume create {{ volume_name }}
+
+    - name: Restore backup into Docker volume
+      shell: |
+        docker run --rm -v {{ volume_name }}:/data -v /path/to/backup:/backup alpine \
+          sh -c "tar -I 'zstd -d' -xf /backup/{{ backup_file }} -C /data"

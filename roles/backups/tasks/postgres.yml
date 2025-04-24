@@ -1,0 +1,16 @@
+---
+- name: Create backup dir
+  file:
+    path: /var/backups/postgresql
+    state: directory
+    mode: '0755'
+
+- name: Dump PostgreSQL user databases with Tehran timestamp
+  become_user: postgres
+  loop: "{{ postgresql_users }}"
+  shell: |
+    export TZ="Asia/Tehran"
+    pg_dump {{ item.database }} | zstd -19 -o /var/backups/postgresql/{{ item.database }}_$(date +%y-%m-%d_%H-%M_%Z).sql.zst
+#    pg_dump {{ item.database }} > /var/backups/postgresql/{{ item.database }}_$(date +%F_%H-%M).sql
+  args:
+    executable: /bin/bash

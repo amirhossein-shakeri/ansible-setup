@@ -1,0 +1,13 @@
+- name: Restore PostgreSQL backup
+  hosts: servers
+  become: true
+  vars:
+    db_restore_user: alice
+    db_restore_db: alice_db
+    db_restore_file: "alice_db_2025-04-24_12-00_IRDT.sql.zst"
+
+  tasks:
+    - name: Decompress and restore PostgreSQL DB
+      shell: |
+        zstd -d -c /var/backups/postgresql/{{ db_restore_file }} | psql -U {{ db_restore_user }} {{ db_restore_db }}
+      become_user: postgres

@@ -1,0 +1,16 @@
+---
+- name: Schedule daily PostgreSQL backup at 2AM
+  cron:
+    name: "Daily PostgreSQL backup"
+    user: root
+    job: "/usr/bin/ansible-playbook /opt/ansible-setup/playbooks/backup_postgres.yml"
+    minute: "0"
+    hour: "2"
+
+- name: Schedule daily system backup at 3AM
+  cron:
+    name: "Daily system backup"
+    user: root
+    job: "/usr/bin/ansible-playbook /opt/ansible-setup/playbooks/backup_system.yml"
+    minute: "0"
+    hour: "3"

@@ -1,0 +1,26 @@
+postgresql_port: 5432
+postgresql_password: "SecurePassword"
+postgresql_users:
+  - username: alice
+    password: "sec_pass"
+    database: alice
+  - username: bob
+    password: "secu_pa"
+    database: bob_db
+
+s3_access_key: YOURKEY
+s3_secret_key: YOURSECRET
+s3_region: eu-central-1
+
+node_version: "22"
+
+docker_registry_mirrors:
+  - https://registry.docker.ir
+  - https://docker.arvancloud.ir
+  - https://docker.iranserver.com
+  - https://docker.haiocloud.com
+  - https://docker.host:5000
+  - https://mirror.gcr.io
+
+nginx_basic_auth_user: admin
+nginx_basic_auth_password: "YourSuperSecretPassword"

@@ -1,0 +1,22 @@
+- name: Download all backups to control node
+  hosts: servers
+  become: true
+
+  tasks:
+    - name: Fetch PostgreSQL backups
+      fetch:
+        src: "/var/backups/postgresql/"
+        dest: "./downloads/postgresql/"
+        flat: no
+
+    - name: Fetch system backups
+      fetch:
+        src: "/var/backups/system/"
+        dest: "./downloads/system/"
+        flat: no
+
+    - name: Fetch docker backups
+      fetch:
+        src: "/var/backups/docker/"
+        dest: "./downloads/docker/"
+        flat: no

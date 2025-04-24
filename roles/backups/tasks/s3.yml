@@ -1,0 +1,13 @@
+- name: Install AWS CLI
+  apt:
+    name: awscli
+    state: present
+
+- name: Upload PostgreSQL backups to S3
+  shell: |
+    aws s3 cp /var/backups/postgresql/ s3://your-bucket-name/postgresql/ --recursive
+  environment:
+    AWS_ACCESS_KEY_ID: "{{ s3_access_key }}"
+    AWS_SECRET_ACCESS_KEY: "{{ s3_secret_key }}"
+    AWS_DEFAULT_REGION: "{{ s3_region }}"
+  when: postgresql_users is defined

@@ -1,0 +1,10 @@
+export ZSH="{{ zsh_path | default('/root/.oh-my-zsh') }}"
+ZSH_THEME="robbyrussell"
+
+plugins=(
+  git
+  zsh-syntax-highlighting
+  zsh-autosuggestions
+)
+
+source $ZSH/oh-my-zsh.sh

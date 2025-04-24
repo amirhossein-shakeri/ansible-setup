@@ -1,0 +1,16 @@
+- name: Configure Ubuntu 24.04 servers
+  hosts: servers
+  become: true
+
+  roles:
+    - common
+    - zsh
+    - docker
+    - nginx
+    - postgresql
+    - tmux
+    - nodejs
+    - firewall
+    # - redis # Add redis
+    # - fail2ban # Add fail2ban
+    # - tls # Add Let's Encrypt

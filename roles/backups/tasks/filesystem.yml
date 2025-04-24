@@ -1,0 +1,20 @@
+---
+- name: Create backup dir
+  file:
+    path: /var/backups/system
+    state: directory
+    mode: '0755'
+
+- name: Archive important folders
+  archive:
+    path:
+      - /var/www
+      - /etc/nginx
+      # - /etc/resolv.conf
+    dest: "/var/backups/system/system_{{ lookup('pipe', 'TZ=Asia/Tehran date +%Y-%m-%d_%H-%M_%Z') }}.tar.gz"
+    # dest: "/var/backups/system/system_{{ ansible_date_time.date }}.tar.gz"
+    format: gz
+
+# - name: Archive folders with zstd
+#   shell: |
+#     tar -I 'zstd -19' -cf /var/backups/system/system_$(TZ=Asia/Tehran date +%Y-%m-%d_%H-%M_%Z).tar.zst /var/www /etc/nginx

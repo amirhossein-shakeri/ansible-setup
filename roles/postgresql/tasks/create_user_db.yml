@@ -1,0 +1,13 @@
+---
+- name: Create PostgreSQL user
+  become_user: postgres
+  postgresql_user:
+    name: "{{ pg_user.username }}"
+    password: "{{ pg_user.password }}"
+    encrypted: yes
+
+- name: Create PostgreSQL database owned by user
+  become_user: postgres
+  postgresql_db:
+    name: "{{ pg_user.database }}"
+    owner: "{{ pg_user.username }}"

@@ -1,0 +1,31 @@
+---
+- name: Install Zsh
+  apt:
+    name: zsh
+    state: present
+
+- name: Install oh-my-zsh
+  shell: |
+    RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+  args:
+    creates: /root/.oh-my-zsh
+  environment:
+    ZSH: /root/.oh-my-zsh
+  become_user: root
+
+- name: Install syntax highlighting plugin
+  git:
+    repo: https://github.com/zsh-users/zsh-syntax-highlighting.git
+    dest: /root/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+    update: no
+
+- name: Install autosuggestions plugin
+  git:
+    repo: https://github.com/zsh-users/zsh-autosuggestions
+    dest: /root/.oh-my-zsh/custom/plugins/zsh-autosuggestions
+    update: no
+
+- name: Copy .zshrc template
+  template:
+    src: zshrc.j2
+    dest: /root/.zshrc

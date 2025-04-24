@@ -1,0 +1,16 @@
+- name: Create backup directory for Docker volumes
+  file:
+    path: /var/backups/docker-volumes
+    state: directory
+    mode: '0755'
+
+- name: Archive Docker volumes using zstd
+  shell: |
+    export TZ="Asia/Tehran"
+    docker volume ls -q | while read vol; do
+      dest="/var/backups/docker-volumes/${vol}_$(date +%Y-%m-%d_%H-%M_%Z).tar.zst"
+      docker run --rm -v "$vol:/data" -v /var/backups/docker-volumes:/backup alpine \
+        sh -c "tar -I 'zstd -19' -cf /backup/$(basename $dest) -C /data ."
+    done
+  args:
+    executable: /bin/sh

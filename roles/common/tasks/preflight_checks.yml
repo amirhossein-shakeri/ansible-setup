@@ -1,0 +1,22 @@
+---
+- name: Gather hardware facts
+  setup:
+    gather_subset:
+      - hardware
+      - network
+      - virtual
+
+- name: Warn if less than 4 CPU cores
+  debug:
+    msg: "!❗WARNING: {{ inventory_hostname }} has only {{ ansible_processor_cores }} CPU cores(less than 4). Minimum recommended is 4."
+  when: ansible_processor_cores | int < 4
+
+- name: Warn if RAM is less than 4GB
+  debug:
+    msg: "!❗WARNING: {{ inventory_hostname }} has only {{ (ansible_memtotal_mb | int / 1024) | round(1) }} of RAM(less than 4GB)."
+  when: ansible_memtotal_mb | int < 4096
+
+- name: Warn if root free space is less than 20GB
+  debug:
+    msg: "!❗WARNING: {{ inventory_hostname }} has only {{ (ansible_mounts | selectattr('mount', 'equalto', '/') | map(attribute='size_available') | first | int / (1024**3)) | round(1) }} free on root partition(less than 20GB)."
+  when: (ansible_mounts | selectattr('mount', 'equalto', '/') | map(attribute='size_available') | first | int / (1024**3)) < 20

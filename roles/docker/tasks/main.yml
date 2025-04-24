@@ -1,0 +1,90 @@
+---
+- name: Add temporary DNS servers
+  copy:
+    dest: /etc/resolv.conf
+    content: |
+      nameserver 178.22.122.100
+      nameserver 185.51.200.2
+    backup: yes
+
+- name: Install required apt packages
+  apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+    state: present
+    update_cache: yes
+
+- name: Add Docker GPG key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Add Docker repository
+  apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release | lower }} stable"
+    state: present
+    filename: docker
+
+- name: Install Docker and Docker Compose plugin
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: latest
+    update_cache: yes
+
+- name: Enable Docker service
+  systemd:
+    name: docker
+    enabled: yes
+    state: started
+
+- name: Add all users to docker group (optional, only root here)
+  user:
+    name: root
+    groups: docker
+    append: yes
+
+- name: Configure Docker daemon with registry mirrors and log limits
+  copy:
+    dest: /etc/docker/daemon.json
+    content: |
+      {
+        "log-driver": "json-file",
+        "log-opts": {
+          "max-size": "64m",
+          "max-file": "4"
+        },
+        "registry-mirrors": {{ docker_registry_mirrors | to_json }}
+      }
+    mode: '0644'
+  notify: Restart docker
+
+- name: Restart Docker to apply config
+  systemd:
+    name: docker
+    state: restarted
+
+# - name: Restore systemd-resolved DNS config
+#   file:
+#     src: /run/systemd/resolve/resolv.conf
+#     dest: /etc/resolv.conf
+#     state: link
+#     force: yes
+
+- name: Restore original resolv.conf if backup exists
+  # shell: |
+  #   cp /etc/resolv.conf.1 /etc/resolv.conf
+  shell: |
+    if [ -f /etc/resolv.conf.1 ]; then
+      mv /etc/resolv.conf.1 /etc/resolv.conf
+    fi
+  args:
+    executable: /bin/bash
+  # ignore_errors: yes

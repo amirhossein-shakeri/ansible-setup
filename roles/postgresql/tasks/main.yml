@@ -1,0 +1,78 @@
+---
+- name: Install PostgreSQL
+  apt:
+    name: postgresql
+    state: present
+    update_cache: yes
+
+- name: Ensure PostgreSQL is enabled and running
+  systemd:
+    name: postgresql
+    enabled: yes
+    state: started
+
+- name: Find the postgresql.conf file
+  find:
+    paths: /etc/postgresql
+    patterns: postgresql.conf
+    recurse: yes
+  register: pg_conf_path
+
+- name: Change PostgreSQL port if needed
+  lineinfile:
+    # path: /etc/postgresql/*/main/postgresql.conf
+    path: "{{ pg_conf_path.files[0].path }}"
+    regexp: '^#?port ='
+    line: "port = {{ postgresql_port }}"
+  register: pg_port_change
+
+- name: Restart PostgreSQL if port changed
+  systemd:
+    name: postgresql
+    state: restarted
+  when: pg_port_change.changed
+
+
+# - name: Change PostgreSQL port
+#   lineinfile:
+#     path: /etc/postgresql/*/main/postgresql.conf
+#     regexp: '^#?port ='
+#     line: "port = {{ postgresql_port }}"
+#     notify: Restart PostgreSQL
+
+- name: Install psycopg2 dependencies on remote
+  apt:
+    name: python3-psycopg2
+    state: present
+    update_cache: yes
+
+- name: Set PostgreSQL superuser password
+  become_user: postgres
+  postgresql_user:
+    name: postgres
+    password: "{{ postgresql_password | password_hash('md5') }}"
+    encrypted: yes
+
+- name: Create PostgreSQL users and databases
+  include_tasks: create_user_db.yml
+  # become_user: postgres
+  loop: "{{ postgresql_users }}"
+  loop_control:
+    loop_var: pg_user
+  # block:
+  #   - name: Create PostgreSQL user
+  #     postgresql_user:
+  #       name: "{{ item.username }}"
+  #       password: "{{ item.password }}"
+  #       encrypted: yes
+
+  #   - name: Create database owned by user
+  #     postgresql_db:
+  #       name: "{{ item.database }}"
+  #       owner: "{{ item.username }}"
+
+# - name: Set PostgreSQL password for user 'postgres'
+#   become_user: postgres
+#   postgresql_user:
+#     name: postgres
+#     password: "{{ postgresql_password | password_hash('md5') }}"
