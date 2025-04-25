@@ -21,6 +21,7 @@
       - build-essential
       - python3-dev
       - libffi-dev
+      - tree
     state: present
 
 - name: Print system info

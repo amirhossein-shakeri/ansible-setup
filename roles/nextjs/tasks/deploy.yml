@@ -1,0 +1,71 @@
+- name: Build source archive locally for {{ nextapp.name }}
+  delegate_to: localhost
+  run_once: true
+  shell: |
+    cd {{ nextapp.local_path }}
+    tar -I 'zstd -19 -T0' -cf /tmp/{{ nextapp.archive_name }} \
+      app components lib hooks public config prisma \
+      next.config.* package.json pnpm-lock.yaml tsconfig.json server.env
+  args:
+    executable: /bin/bash
+
+- name: Upload archive to remote
+  copy:
+    src: "/tmp/{{ nextapp.archive_name }}"
+    dest: "/tmp/{{ nextapp.archive_name }}"
+
+- name: Ensure remote app path exists
+  file:
+    path: "{{ nextapp.remote_path }}"
+    state: directory
+
+- name: Extract archive on remote
+  shell: |
+    tar -I 'zstd -d' -xf /tmp/{{ nextapp.archive_name }} -C {{ nextapp.remote_path }}
+  args:
+    executable: /bin/bash
+
+- name: Rename server.env to .env
+  shell: |
+    mv {{ nextapp.remote_path }}/server.env {{ nextapp.remote_path }}/.env
+  args:
+    executable: /bin/bash
+  when: ansible_facts['os_family'] == "Debian" or ansible_facts['os_family'] == "Ubuntu"
+
+- name: Install and build project on remote
+  shell: |
+    export NVM_DIR="/root/.nvm"
+    source "$NVM_DIR/nvm.sh"
+    cd {{ nextapp.remote_path }}
+    pnpm install
+    pnpm build
+  args:
+    executable: /bin/bash
+
+- name: Start project with pm2
+  shell: |
+    export NVM_DIR="/root/.nvm"
+    source "$NVM_DIR/nvm.sh"
+    pm2 start "pnpm start" --name "{{ nextapp.name }}" --cwd "{{ nextapp.remote_path }}"
+  args:
+    executable: /bin/bash
+
+- name: Save pm2 state
+  shell: |
+    export NVM_DIR="/root/.nvm"
+    source "$NVM_DIR/nvm.sh"
+    pm2 save
+  args:
+    executable: /bin/bash
+
+- name: Delete local archive after deployment
+  delegate_to: localhost
+  become: false
+  file:
+    path: "/tmp/{{ nextapp.archive_name }}"
+    state: absent
+
+- name: Delete remote archive after deployment
+  file:
+    path: "/tmp/{{ nextapp.archive_name }}"
+    state: absent

@@ -88,3 +88,11 @@
   args:
     executable: /bin/bash
   # ignore_errors: yes
+
+- name: Reset temporary DNS servers
+  copy:
+    dest: /etc/resolv.conf
+    content: |
+      nameserver 1.1.1.1
+      nameserver 8.8.8.8
+    backup: yes

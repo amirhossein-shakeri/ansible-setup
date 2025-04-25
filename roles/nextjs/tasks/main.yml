@@ -1,0 +1,6 @@
+- name: Deploy all Next.js projects
+  include_tasks: deploy.yml
+  loop: "{{ nextjs_projects }}"
+  loop_control:
+    loop_var: nextapp
+  when: deploy_project is not defined or nextapp.name == deploy_project

@@ -1,0 +1,11 @@
+- name: Ensure PM2 app {{ nextapp.name }} is healthy
+  shell: |
+    export NVM_DIR="/root/.nvm"
+    source "$NVM_DIR/nvm.sh"
+    pm2 show {{ nextapp.name }} | grep -q 'status.*online'
+  args:
+    executable: /bin/bash
+  register: healthcheck_result
+  failed_when: healthcheck_result.rc != 0
+
+# TODO: application healthcheck route

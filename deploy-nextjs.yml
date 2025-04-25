@@ -1,0 +1,8 @@
+---
+- name: Manually deploy Next.js projects via PM2
+  hosts: servers
+  # become: true
+  become: false
+  run_once: true
+  roles:
+    - role: nextjs

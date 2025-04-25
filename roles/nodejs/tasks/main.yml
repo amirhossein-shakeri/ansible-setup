@@ -11,7 +11,8 @@
     source "$NVM_DIR/nvm.sh"
     nvm install 22
     nvm alias default 22
-    npm install -g pnpm pm2
+    npm i -g npm@latest
+    npm install -g pnpm@latest pm2
   environment:
     NVM_DIR: "/root/.nvm"
   args:

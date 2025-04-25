@@ -4,6 +4,7 @@ postgresql_users:
   - username: alice
     password: "sec_pass"
     database: alice
+
   - username: bob
     password: "secu_pa"
     database: bob_db
@@ -24,3 +25,16 @@ docker_registry_mirrors:
 
 nginx_basic_auth_user: admin
 nginx_basic_auth_password: "YourSuperSecretPassword"
+
+nextjs_projects:
+  # ansible-playbook deploy-nextjs.yml -i inventory.ini --extra-vars="deploy_project=app-next"
+  - name: "app-next"
+    local_path: "~/app-next"
+    remote_path: "/root/apps/app-next"
+    archive_name: "app-next-nextjs-deploy.tar.zst"
+
+  # ansible-playbook deploy-nextjs.yml -i inventory.ini --extra-vars="deploy_project=app-next-2"
+  - name: "app-next-2"
+    local_path: "~/app-next-2"
+    remote_path: "/root/apps/app-next-2"
+    archive_name: "app-next-2-nextjs-deploy.tar.zst"
