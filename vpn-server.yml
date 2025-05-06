@@ -1,0 +1,9 @@
+- name: Prepare VPN Servers
+  hosts: servers
+  become: true
+
+  roles:
+    - common
+    - zsh
+    - tmux
+    - nginx

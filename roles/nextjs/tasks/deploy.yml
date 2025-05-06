@@ -3,9 +3,12 @@
   run_once: true
   shell: |
     cd {{ nextapp.local_path }}
-    tar -I 'zstd -19 -T0' -cf /tmp/{{ nextapp.archive_name }} \
-      app components lib hooks public config prisma \
-      next.config.* package.json pnpm-lock.yaml tsconfig.json server.env
+    (git ls-files -z; printf 'server.env\0') | \
+      tar -I 'zstd -19 -T0' -cvf /tmp/{{ nextapp.archive_name }} \
+      --null -T -
+    # tar -I 'zstd -19 -T0' -cf /tmp/{{ nextapp.archive_name }} \
+    #   app components lib hooks public config prisma \
+    #   next.config.* package.json pnpm-lock.yaml tsconfig.json server.env
   args:
     executable: /bin/bash
 

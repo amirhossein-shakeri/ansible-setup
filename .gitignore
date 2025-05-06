@@ -1,3 +1,4 @@
 inventory.ini
+inventory.*.ini
 group_vars/all.yml
 # group_vars/*
