@@ -28,11 +28,9 @@
   args:
     executable: /bin/bash
 
-- name: Rename server.env to .env
-  shell: |
-    mv {{ nextapp.remote_path }}/server.env {{ nextapp.remote_path }}/.env
-  args:
-    executable: /bin/bash
+- name: Rename server.env to .env(overwrite)
+  shell: mv -f {{ nextapp.remote_path }}/server.env {{ nextapp.remote_path }}/.env
+  args: { executable: /bin/bash }
   when: ansible_facts['os_family'] == "Debian" or ansible_facts['os_family'] == "Ubuntu"
 
 - name: Install and build project on remote
@@ -45,13 +43,46 @@
   args:
     executable: /bin/bash
 
-- name: Start project with pm2
+# Detect whether the app is already registered in PM2
+- name: Check if PM2 app exists
   shell: |
     export NVM_DIR="/root/.nvm"
     source "$NVM_DIR/nvm.sh"
-    pm2 start "pnpm start" --name "{{ nextapp.name }}" --cwd "{{ nextapp.remote_path }}"
+    pm2 describe "{{ nextapp.name }}" >/dev/null 2>&1
   args:
     executable: /bin/bash
+  register: pm2_check
+  changed_when: false
+  failed_when: false
+
+# Start only if it doesn't exist yet
+- name: Start app with PM2 (first run)
+  shell: |
+    export NVM_DIR="/root/.nvm"
+    source "$NVM_DIR/nvm.sh"
+    # Prefer this form so args are passed correctly to pnpm
+    pm2 start pnpm --name "{{ nextapp.name }}" --cwd "{{ nextapp.remote_path }}" -- start
+  args:
+    executable: /bin/bash
+  when: pm2_check.rc != 0
+
+# Restart if it already exists (subsequent runs)
+- name: Restart app with PM2 (update)
+  shell: |
+    export NVM_DIR="/root/.nvm"
+    source "$NVM_DIR/nvm.sh"
+    pm2 restart "{{ nextapp.name }}" --update-env
+  args:
+    executable: /bin/bash
+  when: pm2_check.rc == 0
+
+# - name: Start project with pm2
+#   shell: |
+#     export NVM_DIR="/root/.nvm"
+#     source "$NVM_DIR/nvm.sh"
+#     pm2 start "pnpm start" --name "{{ nextapp.name }}" --cwd "{{ nextapp.remote_path }}"
+#   args:
+#     executable: /bin/bash
 
 - name: Save pm2 state
   shell: |
